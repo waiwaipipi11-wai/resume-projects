@@ -446,6 +446,11 @@
     { label: "具身交互语言规范", title: "机器狗怎么「说话」" },
     { label: "服务旅程", title: "一次完整的同行" },
     { label: "体验验证与风险场景", title: "怎么证明它真的更好" },
+    { label: "界面设计", title: "交互设计 · 基于美团原生应用植入功能模块" },
+    { label: "硬件设计", title: "硬件配件设计 · 牵引绳设计" },
+    { label: "硬件设计", title: "硬件配件设计 · 载物配件设计" },
+    { label: "硬件设计", title: "硬件配件设计 · 充电基站设计" },
+    { label: "涂装设计", title: "涂装设计与商业路径结合" },
   ];
 
   const viewer = document.getElementById('viewer');
@@ -537,29 +542,70 @@
   });
   setImgRadius();
 
+  let firstPaint = true;
   function setActive(index) {
     tocItems.forEach((t, i) => t.classList.toggle('active', i === index));
     tocCurrent.textContent = String(index + 1).padStart(2, '0');
     progressFill.style.width = `${((index + 1) / sections.length) * 100}%`;
     const activeItem = tocItems[index];
-    if (activeItem) {
+    // Skip the auto-scroll on the very first paint so the sidebar (and, in some
+    // browsers, the page itself) doesn't jump before the user has scrolled.
+    if (activeItem && !firstPaint) {
       activeItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    firstPaint = false;
+  }
+
+  // Reveal animation only — active state is driven by scroll position below,
+  // because sections can be taller than the viewport (intersectionRatio never
+  // reaches a high threshold in that case).
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) entry.target.classList.add('in-view');
+    });
+  }, { threshold: 0 });
+
+  sectionEls.forEach(sec => observer.observe(sec));
+
+  // Active section = the one covering the viewport's reading line.
+  let currentActive = -1;
+  function updateActive() {
+    const viewerRect = viewer.getBoundingClientRect();
+    const line = viewerRect.top + viewerRect.height * 0.4;
+    let best = 0;
+    let bestDist = Infinity;
+
+    sectionEls.forEach((sec, i) => {
+      const r = sec.getBoundingClientRect();
+      // Distance from the reading line to this section's visible span.
+      const dist = r.top > line ? r.top - line
+                 : r.bottom < line ? line - r.bottom
+                 : 0;
+      if (dist < bestDist) { bestDist = dist; best = i; }
+    });
+
+    // Pin to the last section once scrolled to the bottom.
+    if (viewer.scrollTop + viewer.clientHeight >= viewer.scrollHeight - 2) {
+      best = sectionEls.length - 1;
+    }
+
+    if (best !== currentActive) {
+      currentActive = best;
+      setActive(best);
     }
   }
 
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      const idx = sectionEls.indexOf(entry.target);
-      if (entry.isIntersecting) {
-        entry.target.classList.add('in-view');
-        if (entry.intersectionRatio > 0.55) {
-          setActive(idx);
-        }
-      }
-    });
-  }, { threshold: [0, 0.55, 1] });
+  let ticking = false;
+  viewer.addEventListener('scroll', () => {
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(() => { updateActive(); ticking = false; });
+    }
+  }, { passive: true });
 
-  sectionEls.forEach(sec => observer.observe(sec));
+  window.addEventListener('resize', updateActive);
+  window.addEventListener('load', updateActive);
+  updateActive();
 
   // Only enable the scroll-reveal animation if this renderer actually paints
   // frames. Some embedded/headless viewers never fire rAF or the
