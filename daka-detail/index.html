@@ -495,29 +495,64 @@
   const sectionEls = Array.from(document.querySelectorAll('.section'));
   const tocItems = Array.from(document.querySelectorAll('.toc-item'));
 
+  let firstPaint = true;
   function setActive(index) {
     tocItems.forEach((t, i) => t.classList.toggle('active', i === index));
     tocCurrent.textContent = String(index + 1).padStart(2, '0');
     progressFill.style.width = `${((index + 1) / sections.length) * 100}%`;
     const activeItem = tocItems[index];
-    if (activeItem) {
+    // Skip auto-scrolling the sidebar on first paint to avoid a visible jump.
+    if (activeItem && !firstPaint) {
       activeItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
+    firstPaint = false;
   }
 
+  // Reveal animation only. The active section is derived from scroll position
+  // below: sections are taller than the viewport, so intersectionRatio never
+  // reaches a high threshold and the TOC would stick on the wrong item.
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
-      const idx = sectionEls.indexOf(entry.target);
-      if (entry.isIntersecting) {
-        entry.target.classList.add('in-view');
-        if (entry.intersectionRatio > 0.55) {
-          setActive(idx);
-        }
-      }
+      if (entry.isIntersecting) entry.target.classList.add('in-view');
     });
-  }, { threshold: [0, 0.55, 1] });
+  }, { threshold: 0 });
 
   sectionEls.forEach(sec => observer.observe(sec));
+
+  // Active section = the one crossing the viewport's reading line.
+  let currentActive = -1;
+  function updateActive() {
+    const vr = viewer.getBoundingClientRect();
+    const line = vr.top + vr.height * 0.4;
+    let best = 0, bestDist = Infinity;
+
+    sectionEls.forEach((sec, i) => {
+      const r = sec.getBoundingClientRect();
+      const dist = r.top > line ? r.top - line
+                 : r.bottom < line ? line - r.bottom
+                 : 0;
+      if (dist < bestDist) { bestDist = dist; best = i; }
+    });
+
+    // Pin to the last section once scrolled to the very bottom.
+    if (viewer.scrollTop + viewer.clientHeight >= viewer.scrollHeight - 2) {
+      best = sectionEls.length - 1;
+    }
+
+    if (best !== currentActive) { currentActive = best; setActive(best); }
+  }
+
+  let ticking = false;
+  viewer.addEventListener('scroll', () => {
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(() => { updateActive(); ticking = false; });
+    }
+  }, { passive: true });
+
+  window.addEventListener('resize', updateActive);
+  window.addEventListener('load', updateActive);
+  updateActive();
 
   // Hide scroll hint after first scroll
   let hintHidden = false;

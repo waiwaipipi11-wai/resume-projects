@@ -616,22 +616,8 @@
       const r = sec.getBoundingClientRect();
       if (r.top < window.innerHeight && r.bottom > 0) sec.classList.add('in-view');
     });
-    updateActiveByScroll();
+    updateActive();
   }));
-
-  // Scroll-position fallback for keeping the TOC in sync.
-  function updateActiveByScroll() {
-    const vr = viewer.getBoundingClientRect();
-    let best = 0, bestRatio = 0;
-    sectionEls.forEach((s, i) => {
-      const r = s.getBoundingClientRect();
-      const overlap = Math.max(0, Math.min(r.bottom, vr.bottom) - Math.max(r.top, vr.top));
-      const ratio = overlap / Math.min(r.height, vr.height);
-      if (ratio > bestRatio) { bestRatio = ratio; best = i; }
-    });
-    setActive(best);
-  }
-  viewer.addEventListener('scroll', updateActiveByScroll, { passive: true });
 
   // Hide scroll hint after first scroll
   let hintHidden = false;
