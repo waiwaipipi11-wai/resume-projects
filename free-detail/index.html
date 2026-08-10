@@ -230,6 +230,7 @@
     position: relative;
     width: 100%;
     max-width: 1100px;
+    margin-top: 46px;
     transform: translateY(24px) scale(0.98);
     opacity: 0;
     transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.7s ease;
@@ -246,10 +247,13 @@
     filter: drop-shadow(0 20px 50px rgba(0,0,0,0.55));
   }
 
+  /* section-tag is positioned relative to .card (not .section) so it always
+     sticks to the top of the card regardless of vertical centering / viewport
+     height, preventing overlap with the artwork on medium-width screens. */
   .section-tag {
     position: absolute;
-    top: 40px;
-    left: 56px;
+    top: -46px;
+    left: 0;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -368,7 +372,8 @@
       cursor: pointer;
     }
     .section { padding: 90px 20px 40px 20px; }
-    .section-tag { left: 20px; top: 20px; }
+    .card { margin-top: 40px; }
+    .section-tag { left: 0; top: -40px; }
     .scroll-hint { transform: translateX(-50%); }
   }
 </style>
@@ -460,7 +465,7 @@
     img.addEventListener('click', () => openZoom(src));
     card.appendChild(img);
 
-    section.appendChild(tag);
+    card.insertBefore(tag, card.firstChild);
     section.appendChild(card);
     viewer.appendChild(section);
 
