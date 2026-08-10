@@ -246,13 +246,14 @@
   }
   /* The artwork itself has rounded corners (35px at its native 1600px width).
      A percentage radius would go elliptical on these non-square images, so the
-     radius is set in px from the rendered width via JS (see setImgRadius). */
+     radius is set in px from the rendered width via JS (see setImgRadius),
+     with an additional 10px to make the displayed cards more rounded. */
   .card img {
     display: block;
     width: 100%;
     height: auto;
     cursor: zoom-in;
-    border-radius: 35px;
+    border-radius: 45px;
     box-shadow: 0 20px 50px rgba(0,0,0,0.55);
   }
 
@@ -507,14 +508,14 @@
   const sectionEls = Array.from(document.querySelectorAll('.section'));
   const tocItems = Array.from(document.querySelectorAll('.toc-item'));
 
-  // The source artwork has a 35px corner radius at its native 1600px width.
-  // Scale that to whatever width the image is actually rendered at so the CSS
-  // corner sits exactly on the artwork's own corner.
+  // Scale the source artwork's 35px native curve to the rendered width, then
+  // add 10px so the displayed card corners are visibly rounder.
   const NATIVE_W = 1600;
   const NATIVE_R = 35;
+  const EXTRA_RADIUS = 10;
   function applyRadius(img) {
     const w = img.getBoundingClientRect().width;
-    if (w > 0) img.style.borderRadius = (NATIVE_R * w / NATIVE_W).toFixed(2) + 'px';
+    if (w > 0) img.style.borderRadius = (NATIVE_R * w / NATIVE_W + EXTRA_RADIUS).toFixed(2) + 'px';
   }
   function setImgRadius() {
     document.querySelectorAll('.card img').forEach(applyRadius);

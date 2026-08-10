@@ -244,9 +244,9 @@
     width: 100%;
     height: auto;
     cursor: zoom-in;
-    /* Radius is kept in sync with the 41px curve baked into the
-       1920px-wide source art via --img-radius (see syncRadius()). */
-    border-radius: var(--img-radius, 14px);
+    /* The source-art radius plus an additional 10px, set via --img-radius
+       from syncRadius() so the added curve remains consistent at every width. */
+    border-radius: var(--img-radius, 24px);
     box-shadow: 0 20px 50px rgba(0,0,0,0.55);
   }
 
@@ -432,11 +432,11 @@
     { label: "用户研究", title: "用户分析及行为路径" },
     { label: "用户旅程", title: "商家用户行为路径 before / after" },
     { label: "信息架构", title: "信息架构及设计原则" },
-    { label: "方案设计", title: "设计方案思考" },
+    { label: "项目迭代", title: "商家端管理「迭代」优化" },
+    { label: "项目背景及目标", title: "基于产品性质定位项目目标" },
+    { label: "问题洞察", title: "现状问题" },
+    { label: "用户旅程", title: "商家用户行为路径" },
     { label: "最终方案", title: "框架思考及优化策略" },
-    { label: "方案设计", title: "最终方案及数据验证" },
-    { label: "项目迭代", title: "商家端管理迭代优化" },
-    { label: "项目复盘", title: "总结与迭代方向" },
   ];
 
   const viewer = document.getElementById('viewer');
@@ -554,14 +554,14 @@
     }
   });
 
-  // Keep the CSS corner radius exactly matched to the rounded corners
-  // baked into the source artwork (41px on a 1920px-wide page).
-  const SRC_RADIUS = 41, SRC_WIDTH = 1920;
+  // Preserve the source-art curve (41px at 1920px wide), then add 10px
+  // to make the displayed card corners visibly rounder.
+  const SRC_RADIUS = 41, SRC_WIDTH = 1920, EXTRA_RADIUS = 10;
   function syncRadius() {
     document.querySelectorAll('.card img').forEach(img => {
       const w = img.getBoundingClientRect().width;
       if (!w) return;
-      const r = (SRC_RADIUS / SRC_WIDTH) * w;
+      const r = (SRC_RADIUS / SRC_WIDTH) * w + EXTRA_RADIUS;
       img.style.setProperty('--img-radius', `${r.toFixed(2)}px`);
     });
   }
