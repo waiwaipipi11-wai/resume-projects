@@ -170,6 +170,30 @@
     box-shadow: 0 0 8px rgba(255,201,60,0.7);
   }
 
+  /* ===== 迭代阶段分隔线 ===== */
+  .toc-divider {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 12px 6px 12px;
+    margin-top: 4px;
+  }
+  .toc-divider::before,
+  .toc-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,226,77,0.35), transparent);
+  }
+  .toc-divider-tag {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: var(--grad-a);
+    white-space: nowrap;
+    opacity: 0.8;
+  }
+
   .sidebar-footer {
     padding: 14px 10px 0 10px;
     margin-top: 12px;
@@ -477,6 +501,14 @@
     card.insertBefore(tag, card.firstChild);
     section.appendChild(card);
     viewer.appendChild(section);
+
+    // 在「项目迭代」前插入分隔线（索引 7 = page_08）
+    if (i === 7) {
+      const divider = document.createElement('div');
+      divider.className = 'toc-divider';
+      divider.innerHTML = '<span class="toc-divider-tag">ITERATION</span>';
+      tocList.appendChild(divider);
+    }
 
     // Build TOC item
     const item = document.createElement('div');
